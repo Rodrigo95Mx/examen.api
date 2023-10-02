@@ -11,14 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
-            $table->comment('Tabla con los usuarios registrados en el sistema');
+        Schema::create('products', function (Blueprint $table) {
+            $table->comment('Tabla con los productos disponibles en la tienda');
             $table->id();
-            $table->string('name', 100)->comment('Nombre del usuario');
-            $table->string('email',250)->comment('Correo registrado del usuario');
-            $table->string('phone',20)->comment('Telefono registrado del usuario');
-            $table->string('password',100)->comment('Contraseña del usuario');
-            $table->string('token',250)->comment('Token del usuario');
+            $table->string('name' , 100)->comment('Nombre del producto');
+            $table->decimal('price', 12,2)->comment('Precio del producto');
+            $table->string('image_url', 250)->comment('Url de la imagen del producto');
             $table->boolean('active')->default(true)->comment('Campo para el borrado logico de los registros');
             $table->dateTime('created_at');
             $table->dateTime('updated_at');
@@ -30,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('products');
     }
 };
