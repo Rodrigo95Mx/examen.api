@@ -1,0 +1,33 @@
+version: "3.8"
+
+services:
+  nginxapiexamen:
+    image: nginx
+    container_name: nginxapiexamen
+    ports:
+      - "96:80"
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
+      - ./src:/src
+      - ./logs/:/var/log/nginx/
+    networks:
+      default:
+        aliases:
+          - nginxapiexamen
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+
+  phpapiexamen:
+    build:
+      context: .
+      dockerfile: dockerfile
+    container_name: phpapiexamen
+    volumes:
+      - ./src:/src
+    working_dir: /src
+    networks:
+      default:
+        aliases:
+          - phpapiexamen
+
+networks:
+  default:

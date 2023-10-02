@@ -1,0 +1,10 @@
+/.idea
+Homestead.json
+Homestead.yaml
+.env
+.phpunit.result.cache
+config/constants.php
+vendor/
+storage/
+policies/
+in/
