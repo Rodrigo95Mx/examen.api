@@ -15,6 +15,8 @@ return new class extends Migration
             $table->comment('Tabla con los usuarios registrados en el sistema');
             $table->id();
             $table->string('name', 100)->comment('Nombre del usuario');
+            $table->string('lastname', 100)->comment('Apellido Paterno del usuario');
+            $table->string('lastname2', 100)->comment('Apellido Materno del usuario');
             $table->string('email',250)->comment('Correo registrado del usuario');
             $table->string('phone',20)->comment('Telefono registrado del usuario');
             $table->string('password',100)->comment('Contraseña del usuario');

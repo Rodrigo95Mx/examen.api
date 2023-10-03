@@ -18,7 +18,7 @@ return new class extends Migration
             $table->dateTime('expired_at')->comment('Indica la hora que debe caducar la sesion');
             $table->boolean('active')->default(true)->comment('Indica el status de la sesion');
             $table->dateTime('created_at')->comment('Indica la fecha y hora que inicio la sesion');
-            $table->dateTime('updated_at')->comment('Indica cuando se refresco la sesion');  
+            $table->dateTime('updated_at')->comment('Indica cuando se refresco la sesion');
         });
     }
 
