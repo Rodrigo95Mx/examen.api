@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::post('/login', [EcommerceController::class, 'login']);
+Route::post('/register', [EcommerceController::class, 'register']);
 Route::post('/ecommerce/products/list', [EcommerceController::class, 'productList']);
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
