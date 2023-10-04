@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\User;
+use App\Models\UserSession;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -58,15 +59,50 @@ class EcommerceController extends Controller
         try {
 
             $validator = Validator::make($input, [
-                'commission_agent_id' => 'required|exists:commission_agents,id',
+                'email' => 'required',
+                'password' => 'required',
             ]);
 
             if ($validator->fails()) {
                 return response()->json(['status' => 'error', 'msg' => 'Cuerpo de entrada invalido'], 400);
             }
 
+            //VALIDAR FORMATO EMAIL
+            $validator = Validator::make($input, [
+                'email' => 'email'
+            ]);
 
-            return response()->json(['status' => 'success', 'msg' => 'exito'], 200);
+            if ($validator->fails()) {
+                return response()->json(['status' => 'error', 'msg' => 'Correo electrónico inválido'], 422);
+            }
+
+            $user = User::where('email', $input['email'])->first();
+            if ($user) {
+                if (password_verify($input["password"], $user->password)) {
+                    //CERRAR LAS SESIONES EXISTENTES
+                    UserSession::where(['user_id' => $user->id, 'active' => true])->update(['active' => false]);
+                    //CREAR LA SESION
+                    $expired_at = new \DateTime(date('Y-m-d H:i:s'));
+                    $expired_at = $expired_at->modify('+60 minutes');
+                    $expired_at = $expired_at->format("Y-m-d H:i:s");
+                    $new_session = new UserSession;
+                    $new_session->user_id = $user->id;
+                    $new_session->expired_at = $expired_at;
+                    $new_session->active = true;
+                    $new_session->save();
+                    //ACTUALIZAR EL TOKEN DEL USUSARIO
+                    $user->token = bin2hex(openssl_random_pseudo_bytes(64));
+                    $user->save();
+
+                    $data_return = [
+                        'token' => $user->token,
+                        'session_id' => $new_session->id,
+                        'expired_at' => $expired_at
+                    ];
+                    return response()->json(['status' => 'success', 'msg' => 'exito', 'data' => $data_return], 200);
+                }
+            }
+            return response()->json(['status' => 'error', 'msg' => 'Credenciales incorrectas'], 422);
         } catch (\Throwable $th) {
             return response()->json(['status' => 'error', 'msg' =>  'Internal Server Error'], 500);
         }
