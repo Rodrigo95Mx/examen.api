@@ -94,8 +94,11 @@ class EcommerceController extends Controller
                     //ACTUALIZAR EL TOKEN DEL USUSARIO
                     $user->token = bin2hex(openssl_random_pseudo_bytes(64));
                     $user->save();
+                    //OBTENER EL CARRITO GUARDADO
+                    $shoppingCart = ShoppingCart::where(['user_id' => $user->id, 'active' => true])->get();
 
                     $data_return = [
+                        'shopping_cart' => $shoppingCart,
                         'data_session' => [
                             'token' => $user->token,
                             'session_id' => $new_session->id,
