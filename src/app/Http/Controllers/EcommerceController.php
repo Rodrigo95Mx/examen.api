@@ -173,7 +173,7 @@ class EcommerceController extends Controller
     public function buyCartList(Request $request)
     {
         $input = $request->all();
-        //try {
+        try {
             $validator = Validator::make($input, [
                 'shopping_carts' => 'required',
                 'buy_form' => 'required'
@@ -191,6 +191,7 @@ class EcommerceController extends Controller
             $buy->city = $input['buy_form']['city'];
             $buy->state = $input['buy_form']['state'];
             $buy->postal_code = $input['buy_form']['postal_code'];
+            $buy->payment_method = $input['buy_form']['payment_method'];
             $buy->total_amount = 0;
             $buy->active = true;
             $buy->save();
@@ -215,8 +216,8 @@ class EcommerceController extends Controller
             //SE QUITAN LOS PRODUCTOS DEL CARRITO
             ShoppingCart::where(['user_id' => $input['user_id'], 'active' => true])->update(['active' => false]);
             return response()->json(['status' => 'success', 'msg' => 'Compra realizada'], 200);
-        /*} catch (\Throwable $th) {
+        } catch (\Throwable $th) {
             return response()->json(['status' => 'error', 'msg' =>  'Internal Server Error'], 500);
-        }*/
+        }
     }
 }

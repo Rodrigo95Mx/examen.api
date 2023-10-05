@@ -20,7 +20,7 @@ class ShoppingHistory extends Model
      * @var array
      */
     protected $fillable = [
-        'id', 'user_id', 'recipient_name', 'address', 'city', 'state', 'postal_code', 'total_amount', 'active', 'created_at', 'updated_at'
+        'id', 'user_id', 'recipient_name', 'address', 'city', 'state', 'postal_code', 'payment_method', 'total_amount', 'active', 'created_at', 'updated_at'
     ];
 
     /**
