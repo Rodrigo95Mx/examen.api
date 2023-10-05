@@ -5,14 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class ShoppingProductRel extends Model
+class ShoppingHistoryProduct extends Model
 {
     /**
      * The table associated with the model.
      *
      * @var string
      */
-    protected $table = 'shopping_product_rels';
+    protected $table = 'shopping_history_products';
 
     /**
      * The attributes that are mass assignable.
@@ -20,7 +20,7 @@ class ShoppingProductRel extends Model
      * @var array
      */
     protected $fillable = [
-        'id', 'shopping_history_id', 'product_id', 'quantity', 'active', 'created_at', 'updated_at'
+        'id', 'shopping_history_id', 'product_id', 'quantity', 'sale_price', 'active', 'created_at', 'updated_at'
     ];
 
     /**

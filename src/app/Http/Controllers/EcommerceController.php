@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\ShoppingCart;
+use App\Models\ShoppingHistory;
+use App\Models\ShoppingHistoryProduct;
+use App\Models\ShoppingProductRel;
 use App\Models\User;
 use App\Models\UserSession;
 use Illuminate\Http\Request;
@@ -142,34 +145,78 @@ class EcommerceController extends Controller
     {
         $input = $request->all();
         try {
+            ShoppingCart::where(['user_id' => $input['user_id'], 'active' => true])->update(['active' => false]);
+            if (isset($input['shopping_carts'])) {
+                foreach ($input['shopping_carts'] as $value) {
+                    $cart_product = ShoppingCart::where(['user_id' => $input['user_id'], 'product_id' => $value['product_id']])->first();
+                    if ($cart_product) {
+                        $cart_product->quantity = $value['quantity'];
+                        $cart_product->active = true;
+                        $cart_product->save();
+                    } else {
+                        $new_cart_product = new ShoppingCart;
+                        $new_cart_product->user_id = $input['user_id'];
+                        $new_cart_product->product_id = $value['product_id'];
+                        $new_cart_product->quantity = $value['quantity'];
+                        $new_cart_product->active = true;
+                        $new_cart_product->save();
+                    }
+                }
+            }
+
+            return response()->json(['status' => 'success', 'msg' => 'Carrito actualizado'], 200);
+        } catch (\Throwable $th) {
+            return response()->json(['status' => 'error', 'msg' =>  'Internal Server Error'], 500);
+        }
+    }
+
+    public function buyCartList(Request $request)
+    {
+        $input = $request->all();
+        //try {
             $validator = Validator::make($input, [
-                'shopping_carts' => 'required'
+                'shopping_carts' => 'required',
+                'buy_form' => 'required'
             ]);
 
             if ($validator->fails()) {
                 return response()->json(['status' => 'error', 'msg' => 'Cuerpo de entrada invalido'], 400);
             }
 
-            ShoppingCart::where(['user_id' => $input['user_id'], 'active' => true])->update(['active' => false]);
-
+            //SE CREA LA COMPRA
+            $buy = new ShoppingHistory;
+            $buy->user_id = $input['user_id'];
+            $buy->recipient_name = $input['buy_form']['recipient_name'];
+            $buy->address = $input['buy_form']['address'];
+            $buy->city = $input['buy_form']['city'];
+            $buy->state = $input['buy_form']['state'];
+            $buy->postal_code = $input['buy_form']['postal_code'];
+            $buy->total_amount = 0;
+            $buy->active = true;
+            $buy->save();
+            //SE INSERTAN LOS PRODUCTOS
+            $total_amount = 0;
             foreach ($input['shopping_carts'] as $value) {
-                $cart_product = ShoppingCart::where(['user_id' => $input['user_id'], 'product_id' => $value['product_id']])->first();
-                if ($cart_product) {
-                    $cart_product->quantity = $value['quantity'];
-                    $cart_product->active = true;
-                    $cart_product->save();
-                } else {
-                    $new_cart_product = new ShoppingCart;
-                    $new_cart_product->user_id = $input['user_id'];
-                    $new_cart_product->product_id = $value['product_id'];
-                    $new_cart_product->quantity = $value['quantity'];
-                    $new_cart_product->active = true;
-                    $new_cart_product->save();
-                }
+                $product = Product::find($value['product_id']);
+
+                $product_buy = new ShoppingHistoryProduct();
+                $product_buy->shopping_history_id = $buy->id;
+                $product_buy->product_id = $value['product_id'];
+                $product_buy->quantity = $value['quantity'];
+                $product_buy->sale_price =  $product->price;
+                $product_buy->active = true;
+                $product_buy->save();
+
+                $total_amount = $total_amount + ($product_buy->quantity * $product_buy->sale_price);
             }
-            return response()->json(['status' => 'success', 'msg' => 'Carrito actualizado'], 200);
-        } catch (\Throwable $th) {
+            //SE ACTUALIZA EL PRECIO FINAL
+            $buy->total_amount = $total_amount;
+            $buy->save();
+            //SE QUITAN LOS PRODUCTOS DEL CARRITO
+            ShoppingCart::where(['user_id' => $input['user_id'], 'active' => true])->update(['active' => false]);
+            return response()->json(['status' => 'success', 'msg' => 'Compra realizada'], 200);
+        /*} catch (\Throwable $th) {
             return response()->json(['status' => 'error', 'msg' =>  'Internal Server Error'], 500);
-        }
+        }*/
     }
 }
