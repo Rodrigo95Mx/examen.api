@@ -19,6 +19,7 @@ Route::post('/login', [EcommerceController::class, 'login']);
 Route::post('/register', [EcommerceController::class, 'register']);
 Route::post('/ecommerce/products/list', [EcommerceController::class, 'productList']);
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+//APIS PRIVADAS
+Route::group(['middleware' => ['token.check']], function () {
+    Route::post('/logout', [EcommerceController::class, 'logout']);
 });

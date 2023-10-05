@@ -59,8 +59,8 @@ class EcommerceController extends Controller
         try {
 
             $validator = Validator::make($input, [
-                'email' => 'required',
-                'password' => 'required',
+                'login_email' => 'required',
+                'login_password' => 'required',
             ]);
 
             if ($validator->fails()) {
@@ -69,16 +69,16 @@ class EcommerceController extends Controller
 
             //VALIDAR FORMATO EMAIL
             $validator = Validator::make($input, [
-                'email' => 'email'
+                'login_email' => 'email'
             ]);
 
             if ($validator->fails()) {
                 return response()->json(['status' => 'error', 'msg' => 'Correo electrónico inválido'], 422);
             }
 
-            $user = User::where('email', $input['email'])->first();
+            $user = User::where('email', $input['login_email'])->first();
             if ($user) {
-                if (password_verify($input["password"], $user->password)) {
+                if (password_verify($input["login_password"], $user->password)) {
                     //CERRAR LAS SESIONES EXISTENTES
                     UserSession::where(['user_id' => $user->id, 'active' => true])->update(['active' => false]);
                     //CREAR LA SESION
@@ -95,14 +95,29 @@ class EcommerceController extends Controller
                     $user->save();
 
                     $data_return = [
-                        'token' => $user->token,
-                        'session_id' => $new_session->id,
-                        'expired_at' => $expired_at
+                        'data_session' => [
+                            'token' => $user->token,
+                            'session_id' => $new_session->id,
+                            'expired_at' => $expired_at
+                        ]
                     ];
-                    return response()->json(['status' => 'success', 'msg' => 'exito', 'data' => $data_return], 200);
+                    return response()->json(['status' => 'success', 'msg' => 'Inicio de session exitoso', 'data' => $data_return], 200);
                 }
             }
             return response()->json(['status' => 'error', 'msg' => 'Credenciales incorrectas'], 422);
+        } catch (\Throwable $th) {
+            return response()->json(['status' => 'error', 'msg' =>  'Internal Server Error'], 500);
+        }
+    }
+
+    public function logout(Request $request)
+    {
+        $input = $request->all();
+        try {
+            $session = UserSession::find($input['session_id']);
+            $session->active = false;
+            $session->save();
+            return response()->json(['status' => 'success', 'msg' => 'Session cerrada'], 200);
         } catch (\Throwable $th) {
             return response()->json(['status' => 'error', 'msg' =>  'Internal Server Error'], 500);
         }
