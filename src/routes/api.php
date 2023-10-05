@@ -24,4 +24,6 @@ Route::group(['middleware' => ['token.check']], function () {
     Route::post('/logout', [EcommerceController::class, 'logout']);
     Route::post('/shoppingcart/update', [EcommerceController::class, 'updateShoppingCartDataBase']);
     Route::post('/shoppingcart/buy', [EcommerceController::class, 'buyCartList']);
+    Route::post('/shoppingcart/history', [EcommerceController::class, 'purchaseHistory']);
+    Route::post('/shoppingcart/purchase/details', [EcommerceController::class, 'purchaseDetails']);
 });

@@ -10,6 +10,7 @@ use App\Models\ShoppingProductRel;
 use App\Models\User;
 use App\Models\UserSession;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
@@ -216,6 +217,43 @@ class EcommerceController extends Controller
             //SE QUITAN LOS PRODUCTOS DEL CARRITO
             ShoppingCart::where(['user_id' => $input['user_id'], 'active' => true])->update(['active' => false]);
             return response()->json(['status' => 'success', 'msg' => 'Compra realizada'], 200);
+        } catch (\Throwable $th) {
+            return response()->json(['status' => 'error', 'msg' =>  'Internal Server Error'], 500);
+        }
+    }
+
+    public function purchaseHistory(Request $request)
+    {
+        $input = $request->all();
+        try {
+            $history =  DB::table('shopping_histories')->where(['active' => true, 'user_id' => $input['user_id']])->get();
+            $user = User::where('id', $input['user_id'])->select('name', 'lastname', 'lastname2', 'email', 'phone')->first();
+
+            return response()->json(['status' => 'success', 'msg' => 'Historial obtenido', 'data' => ['history' => $history, 'user' => $user]], 200);
+        } catch (\Throwable $th) {
+            return response()->json(['status' => 'error', 'msg' =>  'Internal Server Error'], 500);
+        }
+    }
+
+    public function purchaseDetails(Request $request)
+    {
+        $input = $request->all();
+        try {
+            $validator = Validator::make($input, [
+                'shopping_history_id' => 'required|exists:shopping_histories,id',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['status' => 'error', 'msg' => 'Cuerpo de entrada invalido'], 400);
+            }
+
+            $purchase = ShoppingHistory::find($input['shopping_history_id']);
+            $products = DB::table('shopping_history_products AS shp')
+                ->join('products AS p', 'p.id', '=', 'shp.product_id')
+                ->where(['shp.shopping_history_id' => $purchase->id, 'shp.active' => true])
+                ->select('p.name', 'p.image_url', 'shp.quantity', 'shp.sale_price')
+                ->get();
+            return response()->json(['status' => 'success', 'msg' => 'Datos obtenidos', 'data' => ['' => $purchase, 'products' => $products]], 200);
         } catch (\Throwable $th) {
             return response()->json(['status' => 'error', 'msg' =>  'Internal Server Error'], 500);
         }
