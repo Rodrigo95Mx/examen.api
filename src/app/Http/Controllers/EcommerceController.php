@@ -253,7 +253,7 @@ class EcommerceController extends Controller
                 ->where(['shp.shopping_history_id' => $purchase->id, 'shp.active' => true])
                 ->select('p.name', 'p.image_url', 'shp.quantity', 'shp.sale_price')
                 ->get();
-            return response()->json(['status' => 'success', 'msg' => 'Datos obtenidos', 'data' => ['' => $purchase, 'products' => $products]], 200);
+            return response()->json(['status' => 'success', 'msg' => 'Datos obtenidos', 'data' => ['purchase' => $purchase, 'products' => $products]], 200);
         } catch (\Throwable $th) {
             return response()->json(['status' => 'error', 'msg' =>  'Internal Server Error'], 500);
         }
