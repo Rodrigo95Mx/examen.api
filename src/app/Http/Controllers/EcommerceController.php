@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\ShoppingCart;
 use App\Models\User;
 use App\Models\UserSession;
 use Illuminate\Http\Request;
@@ -129,6 +130,41 @@ class EcommerceController extends Controller
         try {
             $products = Product::where('active', true)->get();
             return response()->json(['status' => 'success', 'msg' => 'exito', 'data' => ['product_list' => $products]], 200);
+        } catch (\Throwable $th) {
+            return response()->json(['status' => 'error', 'msg' =>  'Internal Server Error'], 500);
+        }
+    }
+
+    public function updateShoppingCartDataBase(Request $request)
+    {
+        $input = $request->all();
+        try {
+            $validator = Validator::make($input, [
+                'shopping_carts' => 'required'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['status' => 'error', 'msg' => 'Cuerpo de entrada invalido'], 400);
+            }
+
+            ShoppingCart::where(['user_id' => $input['user_id'], 'active' => true])->update(['active' => false]);
+
+            foreach ($input['shopping_carts'] as $value) {
+                $cart_product = ShoppingCart::where(['user_id' => $input['user_id'], 'product_id' => $value['product_id']])->first();
+                if ($cart_product) {
+                    $cart_product->quantity = $value['quantity'];
+                    $cart_product->active = true;
+                    $cart_product->save();
+                } else {
+                    $new_cart_product = new ShoppingCart;
+                    $new_cart_product->user_id = $input['user_id'];
+                    $new_cart_product->product_id = $value['product_id'];
+                    $new_cart_product->quantity = $value['quantity'];
+                    $new_cart_product->active = true;
+                    $new_cart_product->save();
+                }
+            }
+            return response()->json(['status' => 'success', 'msg' => 'Carrito actualizado'], 200);
         } catch (\Throwable $th) {
             return response()->json(['status' => 'error', 'msg' =>  'Internal Server Error'], 500);
         }

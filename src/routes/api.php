@@ -22,4 +22,5 @@ Route::post('/ecommerce/products/list', [EcommerceController::class, 'productLis
 //APIS PRIVADAS
 Route::group(['middleware' => ['token.check']], function () {
     Route::post('/logout', [EcommerceController::class, 'logout']);
+    Route::post('/shoppingcart/update', [EcommerceController::class, 'updateShoppingCartDataBase']);
 });

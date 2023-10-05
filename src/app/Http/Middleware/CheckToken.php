@@ -35,7 +35,7 @@ class CheckToken
                 $expired_at = Carbon::parse($sessionModel->expired_at);
                 if ($now->isBefore($expired_at)) {
                     //SESSION EXITOSA
-                    $request->merge(['user' => $tokenModel->id, 'session_id' => $tokenModel->id]);
+                    $request->merge(['user_id' => $tokenModel->id, 'session_id' => $tokenModel->id]);
                     return $next($request);
                 } else {
                     //CERRAR LA SESION
